@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
@@ -14,14 +14,67 @@ export default function Telao() {
   const { livro, capitulo, versiculo } = router.query;
   const [versiculoData, setVersiculoData] = useState<Versiculo | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // Carregar versículo atual
   useEffect(() => {
     if (livro && capitulo && versiculo) {
       fetch(`/api/biblia?livro=${encodeURIComponent(livro as string)}&capitulo=${capitulo}&versiculo=${versiculo}`)
         .then(res => res.json())
-        .then(data => setVersiculoData(data));
+        .then(data => {
+          setVersiculoData(data);
+          setAnimationKey(prev => prev + 1);
+          setIsTransitioning(false);
+        });
     }
   }, [livro, capitulo, versiculo]);
+
+  // Navegar para próximo ou anterior versículo
+  const navegarVersiculo = useCallback((direcao: 'proximo' | 'anterior') => {
+    if (!versiculoData || isTransitioning) return;
+    
+    setIsTransitioning(true);
+    
+    const novoVersiculo = direcao === 'proximo' 
+      ? versiculoData.versiculo + 1 
+      : versiculoData.versiculo - 1;
+    
+    // Verificar se o versículo existe
+    fetch(`/api/biblia?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${versiculoData.capitulo}&versiculo=${novoVersiculo}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.texto) {
+          // Atualizar URL sem recarregar a página
+          router.push(
+            `/telao?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${versiculoData.capitulo}&versiculo=${novoVersiculo}`,
+            undefined,
+            { shallow: false }
+          );
+        } else {
+          setIsTransitioning(false);
+        }
+      })
+      .catch(() => {
+        setIsTransitioning(false);
+      });
+  }, [versiculoData, router, isTransitioning]);
+
+  // Listener de teclado para setas
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        navegarVersiculo('proximo');
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        navegarVersiculo('anterior');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navegarVersiculo]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -95,7 +148,7 @@ export default function Telao() {
         )}
 
         {/* Conteúdo Principal */}
-        <div className="max-w-7xl w-full text-center relative z-10">
+        <div key={animationKey} className={`max-w-7xl w-full text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
           {/* Badge da Igreja */}
           <div className="mb-8 animate-slide-down-fade">
             <div className="inline-block bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 border border-white/20 shadow-lg">
@@ -255,6 +308,36 @@ export default function Telao() {
 
         .animate-pulse-slow {
           animation: pulse-slow 2s ease-in-out infinite;
+        }
+
+        /* Fade out para transição entre versículos */
+        @keyframes fade-out {
+          from {
+            opacity: 1;
+          }
+          to {
+            opacity: 0;
+          }
+        }
+
+        .animate-fade-out {
+          animation: fade-out 0.3s ease-out forwards;
+        }
+
+        /* Animação suave para entrada de novo versículo */
+        @keyframes verse-enter {
+          from {
+            opacity: 0;
+            transform: translateX(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .animate-fade-in-delay-3 {
+          animation: verse-enter 0.8s ease-out 1.2s both;
         }
 
         .delay-100 {
