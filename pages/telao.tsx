@@ -36,23 +36,75 @@ export default function Telao() {
     
     setIsTransitioning(true);
     
-    const novoVersiculo = direcao === 'proximo' 
+    let novoVersiculo = direcao === 'proximo' 
       ? versiculoData.versiculo + 1 
       : versiculoData.versiculo - 1;
+    let novoCapitulo = versiculoData.capitulo;
     
-    // Verificar se o versículo existe
-    fetch(`/api/biblia?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${versiculoData.capitulo}&versiculo=${novoVersiculo}`)
+    // Se estiver indo para trás e for o versículo 0, volta para o capítulo anterior
+    if (novoVersiculo < 1) {
+      novoCapitulo = versiculoData.capitulo - 1;
+      if (novoCapitulo < 1) {
+        setIsTransitioning(false);
+        return;
+      }
+      // Buscar o último versículo do capítulo anterior
+      fetch(`/api/biblia?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${novoCapitulo}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && Array.isArray(data)) {
+            const ultimoVersiculo = Math.max(...data.map((v: any) => v.versiculo));
+            router.push(
+              `/telao?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${novoCapitulo}&versiculo=${ultimoVersiculo}`,
+              undefined,
+              { shallow: false }
+            );
+          } else {
+            setIsTransitioning(false);
+          }
+        })
+        .catch(() => {
+          setIsTransitioning(false);
+        });
+      return;
+    }
+    
+    // Verificar se o versículo existe no capítulo atual
+    fetch(`/api/biblia?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${novoCapitulo}&versiculo=${novoVersiculo}`)
       .then(res => res.json())
       .then(data => {
         if (data && data.texto) {
-          // Atualizar URL sem recarregar a página
+          // Versículo existe, atualizar URL
           router.push(
-            `/telao?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${versiculoData.capitulo}&versiculo=${novoVersiculo}`,
+            `/telao?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${novoCapitulo}&versiculo=${novoVersiculo}`,
             undefined,
             { shallow: false }
           );
         } else {
-          setIsTransitioning(false);
+          // Versículo não existe, tentar próximo capítulo
+          if (direcao === 'proximo') {
+            novoCapitulo = versiculoData.capitulo + 1;
+            novoVersiculo = 1;
+            
+            fetch(`/api/biblia?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${novoCapitulo}&versiculo=${novoVersiculo}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data && data.texto) {
+                  router.push(
+                    `/telao?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${novoCapitulo}&versiculo=${novoVersiculo}`,
+                    undefined,
+                    { shallow: false }
+                  );
+                } else {
+                  setIsTransitioning(false);
+                }
+              })
+              .catch(() => {
+                setIsTransitioning(false);
+              });
+          } else {
+            setIsTransitioning(false);
+          }
         }
       })
       .catch(() => {
@@ -199,7 +251,7 @@ export default function Telao() {
       </div>
 
       <style jsx>{`
-        /* Animação de entrada da página - Suave e lenta */
+        /* Animação de entrada da página - Mais rápida */
         @keyframes page-enter {
           from {
             opacity: 0;
@@ -210,10 +262,10 @@ export default function Telao() {
         }
 
         .animate-page-enter {
-          animation: page-enter 1.5s ease-out;
+          animation: page-enter 0.6s ease-out;
         }
 
-        /* Animação de slide down + fade para o badge */
+        /* Animação de slide down + fade para o badge - Mais rápida */
         @keyframes slide-down-fade {
           from {
             opacity: 0;
@@ -226,10 +278,10 @@ export default function Telao() {
         }
 
         .animate-slide-down-fade {
-          animation: slide-down-fade 1s ease-out 0.3s both;
+          animation: slide-down-fade 0.5s ease-out 0.1s both;
         }
 
-        /* Animação de slide up + fade para referência */
+        /* Animação de slide up + fade para referência - Mais rápida */
         @keyframes slide-up-fade {
           from {
             opacity: 0;
@@ -242,11 +294,11 @@ export default function Telao() {
         }
 
         .animate-slide-up-fade-1 {
-          animation: slide-up-fade 1.2s ease-out 0.6s both;
+          animation: slide-up-fade 0.6s ease-out 0.2s both;
         }
 
         .animate-slide-up-fade-2 {
-          animation: slide-up-fade 1.4s ease-out 0.9s both;
+          animation: slide-up-fade 0.7s ease-out 0.3s both;
         }
 
         /* Efeito shimmer no texto dourado */
@@ -264,7 +316,7 @@ export default function Telao() {
           animation: shimmer 8s linear infinite;
         }
 
-        /* Animação de expansão da linha */
+        /* Animação de expansão da linha - Mais rápida */
         @keyframes expand {
           from {
             width: 0;
@@ -277,10 +329,10 @@ export default function Telao() {
         }
 
         .animate-expand {
-          animation: expand 0.8s ease-out 1.2s both;
+          animation: expand 0.4s ease-out 0.5s both;
         }
 
-        /* Fade in lento para aspas */
+        /* Fade in lento para aspas - Mais rápida */
         @keyframes fade-in-slow {
           from {
             opacity: 0;
@@ -293,7 +345,7 @@ export default function Telao() {
         }
 
         .animate-fade-in-slow {
-          animation: fade-in-slow 1s ease-out 1.5s both;
+          animation: fade-in-slow 0.5s ease-out 0.6s both;
         }
 
         /* Pulse lento para loading */
@@ -326,7 +378,7 @@ export default function Telao() {
           animation: fade-out 0.3s ease-out forwards;
         }
 
-        /* Animação suave para entrada de novo versículo */
+        /* Animação suave para entrada de novo versículo - Mais rápida */
         @keyframes verse-enter {
           from {
             opacity: 0;
@@ -339,7 +391,7 @@ export default function Telao() {
         }
 
         .animate-fade-in-delay-3 {
-          animation: verse-enter 0.8s ease-out 1.2s both;
+          animation: verse-enter 0.4s ease-out 0.7s both;
         }
 
         .delay-100 {
