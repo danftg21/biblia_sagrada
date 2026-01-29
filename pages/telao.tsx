@@ -48,12 +48,12 @@ export default function Telao() {
         setIsTransitioning(false);
         return;
       }
-      // Buscar o último versículo do capítulo anterior
+      // Buscar todos os versículos do capítulo anterior para pegar o último
       fetch(`/api/biblia?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${novoCapitulo}`)
         .then(res => res.json())
         .then(data => {
-          if (data && Array.isArray(data)) {
-            const ultimoVersiculo = Math.max(...data.map((v: any) => v.versiculo));
+          if (data && data.versiculos && data.versiculos.length > 0) {
+            const ultimoVersiculo = Math.max(...data.versiculos.map((v: any) => v.versiculo));
             router.push(
               `/telao?livro=${encodeURIComponent(versiculoData.livro)}&capitulo=${novoCapitulo}&versiculo=${ultimoVersiculo}`,
               undefined,
