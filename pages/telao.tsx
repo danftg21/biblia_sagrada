@@ -150,7 +150,7 @@ export default function Telao() {
         {/* Conteúdo Principal */}
         <div key={animationKey} className={`max-w-7xl w-full text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
           {/* Logo da Igreja Adventista */}
-          <div className="mb-6 animate-slide-down-fade">
+          <div className="mb-3 animate-slide-down-fade">
             <img 
               src="/logo-iasd.png" 
               alt="Igreja Adventista do Sétimo Dia" 
@@ -159,7 +159,7 @@ export default function Telao() {
           </div>
 
           {/* Referência do Versículo */}
-          <div className="mb-8 animate-slide-up-fade-1">
+          <div className="mb-6 animate-slide-up-fade-1">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400 drop-shadow-2xl mb-3 animate-shimmer">
               {versiculoData.livro} {versiculoData.capitulo}:{versiculoData.versiculo}
             </h1>
