@@ -8,57 +8,89 @@ interface Versiculo {
   texto: string;
 }
 
-export default function Painel() {
-  const [livros, setLivros] = useState<string[]>([]);
-  const [capitulos, setCapitulos] = useState<number[]>([]);
-  const [versiculos, setVersiculos] = useState<Versiculo[]>([]);
-  const [todosVersiculos, setTodosVersiculos] = useState<Versiculo[]>([]);
+// Função para normalizar texto (remover acentos)
+const normalizeText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+};
+
+// Função para busca inteligente
+const buscaInteligente = (versiculos: Versiculo[], termo: string): Versiculo[] => {
+  const termoNormalizado = normalizeText(termo);
   
-  const [livroSelecionado, setLivroSelecionado] = useState('');
-  const [capituloSelecionado, setCapituloSelecionado] = useState('');
+  // Detectar se é uma referência bíblica (ex: "salmos 23", "joão 3:16", "salmos 1 2")
+  const referenciaMatch = termoNormalizado.match(/^([a-z0-9\s]+?)(\d+)?(?:\s+(\d+))?(?:[:\s]+(\d+))?$/);
+  
+  if (referenciaMatch) {
+    const [, livroTermo, cap, vers1, vers2] = referenciaMatch;
+    const livroNormalizado = livroTermo.trim();
+    const capitulo = cap ? parseInt(cap) : (vers1 ? parseInt(vers1) : null);
+    const versiculo = vers2 ? parseInt(vers2) : (vers1 && cap ? parseInt(vers1) : null);
+    
+    return versiculos.filter(v => {
+      const livroVersiculoNormalizado = normalizeText(v.livro);
+      
+      // Verifica se o livro corresponde (busca parcial)
+      if (!livroVersiculoNormalizado.includes(livroNormalizado)) {
+        return false;
+      }
+      
+      // Se especificou capítulo
+      if (capitulo !== null && v.capitulo !== capitulo) {
+        return false;
+      }
+      
+      // Se especificou versículo
+      if (versiculo !== null && v.versiculo !== versiculo) {
+        return false;
+      }
+      
+      return true;
+    });
+  }
+  
+  // Busca por texto (palavras no conteúdo)
+  return versiculos.filter(v => {
+    const textoNormalizado = normalizeText(v.texto);
+    const livroNormalizado = normalizeText(v.livro);
+    
+    return textoNormalizado.includes(termoNormalizado) || 
+           livroNormalizado.includes(termoNormalizado);
+  });
+};
+
+export default function Painel() {
+  const [todosVersiculos, setTodosVersiculos] = useState<Versiculo[]>([]);
   const [versiculoSelecionado, setVersiculoSelecionado] = useState<Versiculo | null>(null);
   const [buscaTexto, setBuscaTexto] = useState('');
   const [resultadosBusca, setResultadosBusca] = useState<Versiculo[]>([]);
-  const [modoBusca, setModoBusca] = useState<'navegacao' | 'pesquisa'>('navegacao');
 
-  // Carregar livros e todos versículos ao montar o componente
+  // Carregar todos versículos ao montar
   useEffect(() => {
     fetch('/api/biblia')
       .then(res => res.json())
       .then(data => {
-        setLivros(data.livros);
-        // Carregar todos os versículos para busca
         if (data.todosVersiculos) {
           setTodosVersiculos(data.todosVersiculos);
         }
       });
   }, []);
 
-  // Carregar capítulos quando selecionar um livro
-  useEffect(() => {
-    if (livroSelecionado) {
-      fetch(`/api/biblia?livro=${encodeURIComponent(livroSelecionado)}`)
-        .then(res => res.json())
-        .then(data => {
-          setCapitulos(data.capitulos);
-          setCapituloSelecionado('');
-          setVersiculos([]);
-          setVersiculoSelecionado(null);
-        });
+  // Função de busca melhorada
+  const realizarBusca = (texto: string) => {
+    setBuscaTexto(texto);
+    
+    if (texto.trim().length < 2) {
+      setResultadosBusca([]);
+      return;
     }
-  }, [livroSelecionado]);
 
-  // Carregar versículos quando selecionar um capítulo
-  useEffect(() => {
-    if (livroSelecionado && capituloSelecionado) {
-      fetch(`/api/biblia?livro=${encodeURIComponent(livroSelecionado)}&capitulo=${capituloSelecionado}`)
-        .then(res => res.json())
-        .then(data => {
-          setVersiculos(data.versiculos);
-          setVersiculoSelecionado(null);
-        });
-    }
-  }, [livroSelecionado, capituloSelecionado]);
+    const resultados = buscaInteligente(todosVersiculos, texto).slice(0, 100);
+    setResultadosBusca(resultados);
+  };
 
   const enviarParaTelao = () => {
     if (versiculoSelecionado) {
@@ -67,288 +99,172 @@ export default function Painel() {
     }
   };
 
-  // Função de busca por texto
-  const realizarBusca = (texto: string) => {
-    setBuscaTexto(texto);
-    if (texto.trim().length < 3) {
-      setResultadosBusca([]);
-      return;
-    }
-
-    const termo = texto.toLowerCase();
-    const resultados = todosVersiculos.filter(v => 
-      v.texto.toLowerCase().includes(termo) ||
-      v.livro.toLowerCase().includes(termo)
-    ).slice(0, 50); // Limitar a 50 resultados
-
-    setResultadosBusca(resultados);
-  };
-
   return (
     <>
       <Head>
-        <title>Painel de Controle - Bíblia Sagrada NAA</title>
+        <title>Bíblia Sagrada NAA - Igreja Adventista</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header Moderno */}
-          <div className="text-center mb-8 animate-fade-in">
-            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 mb-4">
-              <span className="text-yellow-300 text-sm font-semibold">Igreja Adventista do Sétimo Dia</span>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-3 drop-shadow-lg">
-              📖 Bíblia Sagrada
-            </h1>
-            <p className="text-blue-200 text-lg">Nova Almeida Atualizada</p>
-          </div>
-
-          {/* Tabs de Navegação vs Pesquisa */}
-          <div className="flex gap-3 mb-6 justify-center">
-            <button
-              onClick={() => setModoBusca('navegacao')}
-              className={`px-8 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${
-                modoBusca === 'navegacao'
-                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'
-              }`}
-            >
-              🗂️ Navegar por Livro
-            </button>
-            <button
-              onClick={() => setModoBusca('pesquisa')}
-              className={`px-8 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${
-                modoBusca === 'pesquisa'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'
-              }`}
-            >
-              🔍 Pesquisar Texto
-            </button>
-          </div>
-
-          {/* Modo Navegação */}
-          {modoBusca === 'navegacao' && (
-            <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-6 md:p-8 mb-6 animate-slide-up">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <span className="text-3xl">📚</span> Navegação por Referência
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-                {/* Seletor de Livro */}
-                <div className="group">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <span className="text-xl">📖</span> Livro
-                  </label>
-                  <select
-                    value={livroSelecionado}
-                    onChange={(e) => setLivroSelecionado(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all text-gray-800 font-medium hover:border-blue-400 bg-white"
-                  >
-                    <option value="">Selecione um livro...</option>
-                    {livros.map((livro) => (
-                      <option key={livro} value={livro}>
-                        {livro}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Seletor de Capítulo */}
-                <div className="group">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <span className="text-xl">📄</span> Capítulo
-                  </label>
-                  <select
-                    value={capituloSelecionado}
-                    onChange={(e) => setCapituloSelecionado(e.target.value)}
-                    disabled={!livroSelecionado}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-300 focus:border-blue-500 transition-all text-gray-800 font-medium hover:border-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed bg-white"
-                  >
-                    <option value="">Selecione um capítulo...</option>
-                    {capitulos.map((cap) => (
-                      <option key={cap} value={cap}>
-                        Capítulo {cap}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Versículo Selecionado */}
-                <div className="group">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <span className="text-xl">✨</span> Selecionado
-                  </label>
-                  <div className="w-full px-4 py-3 border-2 border-green-300 rounded-xl bg-green-50 text-gray-800 font-semibold flex items-center justify-center min-h-[48px]">
-                    {versiculoSelecionado 
-                      ? `${versiculoSelecionado.livro} ${versiculoSelecionado.capitulo}:${versiculoSelecionado.versiculo}`
-                      : 'Nenhum versículo selecionado'
-                    }
-                  </div>
-                </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        {/* Header Horizontal */}
+        <div className="bg-white/5 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+          <div className="max-w-[1800px] mx-auto px-6 py-4 flex items-center justify-between gap-6">
+            {/* Logo e Título - Esquerda */}
+            <div className="flex items-center gap-4 min-w-fit">
+              <div className="text-5xl">📖</div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">Bíblia Sagrada</h1>
+                <p className="text-sm text-blue-200">Nova Almeida Atualizada</p>
+                <p className="text-xs text-yellow-300 font-semibold">Igreja Adventista do Sétimo Dia</p>
               </div>
-
-              {/* Lista de Versículos */}
-              {versiculos.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <span className="text-2xl">📜</span> Versículos Disponíveis
-                  </h3>
-                  <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                    {versiculos.map((v) => (
-                      <div
-                        key={`${v.livro}-${v.capitulo}-${v.versiculo}`}
-                        onClick={() => setVersiculoSelecionado(v)}
-                        className={`p-5 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-[1.02] ${
-                          versiculoSelecionado?.versiculo === v.versiculo
-                            ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-cyan-50 shadow-lg ring-4 ring-blue-200'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50 hover:shadow-md'
-                        }`}
-                      >
-                        <div className="flex justify-between items-start gap-4">
-                          <div className="flex-1">
-                            <span className="inline-block px-3 py-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold rounded-lg text-sm mb-2">
-                              {v.livro} {v.capitulo}:{v.versiculo}
-                            </span>
-                            <p className="text-gray-700 leading-relaxed text-base">{v.texto}</p>
-                          </div>
-                          {versiculoSelecionado?.versiculo === v.versiculo && (
-                            <div className="text-2xl animate-bounce">✅</div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
-          )}
 
-          {/* Modo Pesquisa */}
-          {modoBusca === 'pesquisa' && (
-            <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-6 md:p-8 mb-6 animate-slide-up">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <span className="text-3xl">🔍</span> Pesquisa por Texto
-              </h2>
-              
-              <div className="relative mb-6">
+            {/* Busca - Direita */}
+            <div className="flex-1 max-w-3xl">
+              <div className="relative">
                 <input
                   type="text"
                   value={buscaTexto}
                   onChange={(e) => realizarBusca(e.target.value)}
-                  placeholder="Digite o que deseja encontrar na Bíblia... (mínimo 3 caracteres)"
-                  className="w-full px-6 py-4 pr-12 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-purple-300 focus:border-purple-500 transition-all text-gray-800 text-lg placeholder-gray-400"
+                  placeholder="Digite: salmos, salmos 23, salmos 23 1, joão 3:16, amor, fé..."
+                  className="w-full px-6 py-4 pr-14 border-2 border-white/20 bg-white/10 backdrop-blur-sm rounded-2xl focus:ring-4 focus:ring-blue-400 focus:border-blue-400 transition-all text-white text-lg placeholder-white/50"
+                  autoFocus
                 />
-                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-2xl">🔎</span>
+                <span className="absolute right-5 top-1/2 transform -translate-y-1/2 text-3xl">🔍</span>
               </div>
-
-              {buscaTexto.trim().length >= 3 && (
-                <div className="mb-4 text-sm text-gray-600">
+              
+              {buscaTexto.trim().length >= 2 && (
+                <div className="mt-2 text-sm text-white/70">
                   {resultadosBusca.length > 0 
-                    ? `${resultadosBusca.length} resultado(s) encontrado(s)${resultadosBusca.length === 50 ? ' (mostrando os primeiros 50)' : ''}`
+                    ? `${resultadosBusca.length} versículo(s) encontrado(s)`
                     : 'Nenhum resultado encontrado'
                   }
                 </div>
               )}
+            </div>
+          </div>
+        </div>
 
-              {resultadosBusca.length > 0 && (
-                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+        {/* Conteúdo Principal */}
+        <div className="max-w-[1800px] mx-auto px-6 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Coluna de Resultados - 2/3 */}
+            <div className="lg:col-span-2">
+              {resultadosBusca.length > 0 ? (
+                <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 custom-scrollbar">
                   {resultadosBusca.map((v, index) => (
                     <div
                       key={`${v.livro}-${v.capitulo}-${v.versiculo}-${index}`}
                       onClick={() => setVersiculoSelecionado(v)}
-                      className={`p-5 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-[1.02] ${
+                      className={`p-5 border-2 rounded-xl cursor-pointer transition-all transform hover:scale-[1.01] ${
                         versiculoSelecionado?.versiculo === v.versiculo &&
                         versiculoSelecionado?.capitulo === v.capitulo &&
                         versiculoSelecionado?.livro === v.livro
-                          ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg ring-4 ring-purple-200'
-                          : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50 hover:shadow-md'
+                          ? 'border-green-400 bg-gradient-to-r from-green-500/20 to-emerald-500/20 shadow-lg ring-4 ring-green-300/50'
+                          : 'border-white/20 bg-white/5 backdrop-blur-sm hover:border-blue-300 hover:bg-white/10 hover:shadow-md'
                       }`}
                     >
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex-1">
-                          <span className="inline-block px-3 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-lg text-sm mb-2">
+                          <span className="inline-block px-3 py-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold rounded-lg text-sm mb-3">
                             {v.livro} {v.capitulo}:{v.versiculo}
                           </span>
-                          <p className="text-gray-700 leading-relaxed text-base">{v.texto}</p>
+                          <p className="text-white/90 leading-relaxed text-base">{v.texto}</p>
                         </div>
                         {versiculoSelecionado?.versiculo === v.versiculo &&
                          versiculoSelecionado?.capitulo === v.capitulo &&
                          versiculoSelecionado?.livro === v.livro && (
-                          <div className="text-2xl animate-bounce">✅</div>
+                          <div className="text-3xl animate-bounce">✅</div>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
+              ) : buscaTexto.trim().length >= 2 ? (
+                <div className="text-center py-20">
+                  <div className="text-6xl mb-4">🔍</div>
+                  <p className="text-white/70 text-lg">Nenhum versículo encontrado</p>
+                  <p className="text-white/50 text-sm mt-2">Tente buscar por: nome do livro, capítulo, ou palavras-chave</p>
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <div className="text-6xl mb-4">📖</div>
+                  <p className="text-white/70 text-lg mb-4">Digite para pesquisar na Bíblia</p>
+                  <div className="text-white/50 text-sm space-y-1 max-w-md mx-auto bg-white/5 rounded-xl p-6 border border-white/10">
+                    <p className="font-semibold text-white/70 mb-3">Exemplos de busca:</p>
+                    <p>• <strong>"salmos"</strong> → Todos os salmos</p>
+                    <p>• <strong>"salmos 23"</strong> → Salmo 23 completo</p>
+                    <p>• <strong>"salmos 23 1"</strong> → Salmo 23:1</p>
+                    <p>• <strong>"joão 3:16"</strong> → João 3:16</p>
+                    <p>• <strong>"amor"</strong> → Versículos com a palavra</p>
+                  </div>
+                </div>
               )}
             </div>
-          )}
 
-          {/* Botão de Enviar para Telão */}
-          <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-6 md:p-8 animate-slide-up">
-            <button
-              onClick={enviarParaTelao}
-              disabled={!versiculoSelecionado}
-              className="w-full py-5 px-6 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white font-bold text-2xl rounded-xl hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
-            >
-              <span className="text-3xl">📺</span>
-              Enviar para Telão (Tela Cheia)
-            </button>
-            
-            {versiculoSelecionado && (
-              <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 animate-fade-in">
-                <p className="text-sm text-gray-600 mb-3 font-semibold">
-                  <span className="text-lg">👁️</span> PRÉVIA DO QUE SERÁ EXIBIDO:
-                </p>
-                <p className="text-2xl font-bold text-blue-900 mb-3">
-                  {versiculoSelecionado.livro} {versiculoSelecionado.capitulo}:{versiculoSelecionado.versiculo}
-                </p>
-                <p className="text-gray-800 text-lg leading-relaxed">
-                  "{versiculoSelecionado.texto}"
-                </p>
+            {/* Coluna de Prévia e Envio - 1/3 */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-32">
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-6 border border-white/20">
+                  <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <span className="text-2xl">📺</span> Enviar para Telão
+                  </h2>
+                  
+                  <button
+                    onClick={enviarParaTelao}
+                    disabled={!versiculoSelecionado}
+                    className="w-full py-5 px-6 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white font-bold text-xl rounded-xl hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 mb-4"
+                  >
+                    <span className="text-2xl">🖥️</span>
+                    Tela Cheia
+                  </button>
+                  
+                  {versiculoSelecionado ? (
+                    <div className="p-5 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl border-2 border-blue-300/50 animate-fade-in">
+                      <p className="text-xs text-white/70 mb-3 font-semibold">PRÉVIA:</p>
+                      <p className="text-xl font-bold text-yellow-300 mb-3">
+                        {versiculoSelecionado.livro} {versiculoSelecionado.capitulo}:{versiculoSelecionado.versiculo}
+                      </p>
+                      <p className="text-white/90 leading-relaxed">
+                        "{versiculoSelecionado.texto}"
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-5 bg-white/5 rounded-xl border-2 border-white/10 text-center">
+                      <p className="text-white/50">Nenhum versículo selecionado</p>
+                      <p className="text-white/30 text-sm mt-2">Clique em um versículo para selecionar</p>
+                    </div>
+                  )}
+
+                  <div className="mt-6 p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                    <p className="text-yellow-200 text-xs">
+                      💡 <strong>Dica:</strong> A busca funciona sem acentos! "genesis" encontra "Gênesis"
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-
-          {/* Rodapé com Dicas */}
-          <div className="mt-8 text-center">
-            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4 text-white">
-              <p className="text-sm mb-2">💡 <strong>Dicas de Uso:</strong></p>
-              <p className="text-xs opacity-90">
-                Navegue por livros ou use a pesquisa • Selecione o versículo • Clique em "Enviar para Telão"
-              </p>
             </div>
           </div>
         </div>
       </div>
 
       <style jsx>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slide-up {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
         .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
+          animation: fadeIn 0.3s ease-out;
         }
 
-        .animate-slide-up {
-          animation: slide-up 0.5s ease-out;
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
+          width: 10px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
+          background: rgba(255, 255, 255, 0.05);
           border-radius: 10px;
         }
 
