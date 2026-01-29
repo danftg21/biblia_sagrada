@@ -1,12 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getLivros, getCapitulos, getVersiculos, getVersiculo } from '../../data/biblia';
+import { getLivros, getCapitulos, getVersiculos, getVersiculo, getTodosVersiculos } from '../../data/biblia';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { livro, capitulo, versiculo } = req.query;
 
-  // Listar todos os livros
+  // Listar todos os livros e todos os versículos para busca
   if (!livro) {
-    return res.status(200).json({ livros: getLivros() });
+    return res.status(200).json({ 
+      livros: getLivros(),
+      todosVersiculos: getTodosVersiculos()
+    });
   }
 
   // Listar capítulos de um livro
