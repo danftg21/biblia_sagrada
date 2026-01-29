@@ -214,16 +214,17 @@ export default function Painel() {
                   <button
                     onClick={enviarParaTelao}
                     disabled={!versiculoSelecionado}
-                    className="w-full py-5 px-6 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white font-bold text-xl rounded-xl hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 mb-4"
+                    className="w-full py-5 px-6 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 text-white font-bold text-xl rounded-xl hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 mb-4 group relative overflow-hidden"
                   >
-                    <span className="text-2xl">🖥️</span>
-                    Tela Cheia
+                    <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
+                    <span className="text-2xl group-hover:scale-110 transition-transform duration-300">🖥️</span>
+                    <span className="relative">Tela Cheia</span>
                   </button>
                   
                   {versiculoSelecionado ? (
-                    <div className="p-5 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl border-2 border-blue-300/50 animate-fade-in">
+                    <div className="p-5 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl border-2 border-blue-300/50 animate-slide-in shadow-lg">
                       <p className="text-xs text-white/70 mb-3 font-semibold">PRÉVIA:</p>
-                      <p className="text-xl font-bold text-yellow-300 mb-3">
+                      <p className="text-xl font-bold text-yellow-300 mb-3 animate-glow">
                         {versiculoSelecionado.livro} {versiculoSelecionado.capitulo}:{versiculoSelecionado.versiculo}
                       </p>
                       <p className="text-white/90 leading-relaxed">
@@ -250,8 +251,9 @@ export default function Painel() {
       </div>
 
       <style jsx>{`
+        /* Fade in suave */
         .animate-fade-in {
-          animation: fadeIn 0.3s ease-out;
+          animation: fadeIn 0.4s ease-out;
         }
 
         @keyframes fadeIn {
@@ -259,6 +261,40 @@ export default function Painel() {
           to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Slide in com bounce suave */
+        .animate-slide-in {
+          animation: slideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideIn {
+          from { 
+            opacity: 0; 
+            transform: translateX(-20px) scale(0.95); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateX(0) scale(1); 
+          }
+        }
+
+        /* Efeito glow no texto selecionado */
+        .animate-glow {
+          animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+          0%, 100% { 
+            text-shadow: 0 0 10px rgba(253, 224, 71, 0.5),
+                         0 0 20px rgba(253, 224, 71, 0.3);
+          }
+          50% { 
+            text-shadow: 0 0 20px rgba(253, 224, 71, 0.8),
+                         0 0 30px rgba(253, 224, 71, 0.5),
+                         0 0 40px rgba(253, 224, 71, 0.3);
+          }
+        }
+
+        /* Scrollbar personalizada */
         .custom-scrollbar::-webkit-scrollbar {
           width: 10px;
         }
