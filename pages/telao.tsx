@@ -149,11 +149,13 @@ export default function Telao() {
 
         {/* Conteúdo Principal */}
         <div key={animationKey} className={`max-w-7xl w-full text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
-          {/* Badge da Igreja */}
-          <div className="mb-8 animate-slide-down-fade">
-            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 border border-white/20 shadow-lg">
-              <span className="text-yellow-300 text-sm md:text-base font-semibold">Igreja Adventista do Sétimo Dia</span>
-            </div>
+          {/* Logo da Igreja Adventista */}
+          <div className="mb-10 animate-slide-down-fade">
+            <img 
+              src="/logo-iasd.png" 
+              alt="Igreja Adventista do Sétimo Dia" 
+              className="h-16 md:h-20 lg:h-24 mx-auto drop-shadow-2xl"
+            />
           </div>
 
           {/* Referência do Versículo */}
