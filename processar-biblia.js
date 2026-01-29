@@ -90,11 +90,14 @@ arquivos.forEach(arquivo => {
   
   dados.chapters.forEach((capitulo, capIndex) => {
     capitulo.forEach((texto, versIndex) => {
+      // Se o texto for um array, concatenar em uma única string
+      const textoFinal = Array.isArray(texto) ? texto.join(' ') : texto;
+      
       versiculos.push({
         livro: nomeLivro,
         capitulo: capIndex + 1,
         versiculo: versIndex + 1,
-        texto: texto
+        texto: textoFinal
       });
     });
   });
