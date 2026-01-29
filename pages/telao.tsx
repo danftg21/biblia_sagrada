@@ -154,7 +154,7 @@ export default function Telao() {
             <img 
               src="/logo-iasd.png" 
               alt="Igreja Adventista do Sétimo Dia" 
-              className="h-16 md:h-20 lg:h-24 mx-auto drop-shadow-2xl"
+              className="h-24 md:h-32 lg:h-40 mx-auto drop-shadow-2xl"
             />
           </div>
 

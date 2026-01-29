@@ -116,7 +116,7 @@ export default function Painel() {
               <div>
                 <h1 className="text-2xl font-bold text-white">Bíblia Sagrada</h1>
                 <p className="text-sm text-blue-200">Nova Almeida Atualizada</p>
-                <p className="text-xs text-yellow-300 font-semibold">Igreja Adventista do Sétimo Dia</p>
+                <p className="text-xs text-white font-semibold">Igreja Adventista do Sétimo Dia</p>
               </div>
             </div>
 
