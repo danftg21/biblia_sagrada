@@ -95,7 +95,26 @@ export default function Painel() {
   const enviarParaTelao = () => {
     if (versiculoSelecionado) {
       const url = `/telao?livro=${encodeURIComponent(versiculoSelecionado.livro)}&capitulo=${versiculoSelecionado.capitulo}&versiculo=${versiculoSelecionado.versiculo}`;
-      window.open(url, 'telao', 'fullscreen=yes');
+      
+      // Abrir janela popup em tela cheia (sem barras)
+      const telaoWindow = window.open(
+        url, 
+        'telao', 
+        'width=' + screen.width + ',height=' + screen.height + ',top=0,left=0,fullscreen=yes,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes'
+      );
+      
+      // Tentar mover para segunda tela (se disponível) e maximizar
+      if (telaoWindow) {
+        telaoWindow.moveTo(0, 0);
+        telaoWindow.resizeTo(screen.availWidth, screen.availHeight);
+        
+        // Forçar fullscreen após a janela abrir
+        telaoWindow.addEventListener('load', () => {
+          setTimeout(() => {
+            telaoWindow.document.documentElement.requestFullscreen?.().catch(() => {});
+          }, 100);
+        });
+      }
     }
   };
 

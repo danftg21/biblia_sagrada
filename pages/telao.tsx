@@ -140,18 +140,46 @@ export default function Telao() {
     }
   };
 
-  // Auto-fullscreen quando a página carrega
+  // Auto-fullscreen IMEDIATO quando a página carrega
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Esconder scrollbar
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    
+    // Tentar entrar em fullscreen imediatamente
+    const enterFullscreen = () => {
       if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {
-          // Se falhar, apenas ignora
+        document.documentElement.requestFullscreen().then(() => {
+          setFullscreen(true);
+        }).catch(() => {
+          // Tentar novamente com clique do usuário
         });
-        setFullscreen(true);
       }
-    }, 500);
-
-    return () => clearTimeout(timer);
+    };
+    
+    // Tentar imediatamente
+    enterFullscreen();
+    
+    // Também tentar após um pequeno delay
+    const timer = setTimeout(enterFullscreen, 100);
+    
+    // Listener para entrar em fullscreen no primeiro clique/tecla
+    const handleInteraction = () => {
+      enterFullscreen();
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('keydown', handleInteraction);
+    };
+    
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('keydown', handleInteraction);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('keydown', handleInteraction);
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
   }, []);
 
   // Detectar saída de fullscreen
@@ -179,10 +207,22 @@ export default function Telao() {
     <>
       <Head>
         <title>{`${versiculoData.livro} ${versiculoData.capitulo}:${versiculoData.versiculo}`}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <style>{`
+          html, body {
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100vh !important;
+            width: 100vw !important;
+          }
+          ::-webkit-scrollbar {
+            display: none !important;
+          }
+        `}</style>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-8 relative overflow-hidden animate-page-enter">
+      <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-8 relative overflow-hidden animate-page-enter">
         {/* Efeito de fundo sutil */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-96 h-96 bg-blue-500 rounded-full filter blur-3xl"></div>
