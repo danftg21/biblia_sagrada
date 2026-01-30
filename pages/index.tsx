@@ -67,6 +67,7 @@ export default function Painel() {
   const [versiculoSelecionado, setVersiculoSelecionado] = useState<Versiculo | null>(null);
   const [buscaTexto, setBuscaTexto] = useState('');
   const [resultadosBusca, setResultadosBusca] = useState<Versiculo[]>([]);
+  const [buscaAvancada, setBuscaAvancada] = useState(false);
 
   // Carregar todos versículos ao montar
   useEffect(() => {
@@ -88,9 +89,29 @@ export default function Painel() {
       return;
     }
 
-    const resultados = buscaInteligente(todosVersiculos, texto).slice(0, 100);
+    let resultados: Versiculo[];
+    
+    if (buscaAvancada) {
+      // Busca avançada: busca apenas pelo texto/conteúdo dos versículos
+      const termoNormalizado = normalizeText(texto);
+      resultados = todosVersiculos.filter(v => {
+        const textoNormalizado = normalizeText(v.texto);
+        return textoNormalizado.includes(termoNormalizado);
+      }).slice(0, 100);
+    } else {
+      // Busca normal (inteligente por referência ou texto)
+      resultados = buscaInteligente(todosVersiculos, texto).slice(0, 100);
+    }
+    
     setResultadosBusca(resultados);
   };
+
+  // Reexecuta busca quando muda o modo de busca avançada
+  useEffect(() => {
+    if (buscaTexto.trim().length >= 2) {
+      realizarBusca(buscaTexto);
+    }
+  }, [buscaAvancada]);
 
   // Função para abrir na segunda tela (se disponível)
   const enviarParaTelao = async () => {
@@ -173,22 +194,46 @@ export default function Painel() {
 
             {/* Busca - Direita */}
             <div className="flex-1 max-w-3xl">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={buscaTexto}
-                  onChange={(e) => realizarBusca(e.target.value)}
-                  placeholder="Digite: salmos, salmos 23, salmos 23 1, joão 3:16, amor, fé..."
-                  className="w-full px-6 py-4 pr-14 border-2 border-white/20 bg-white/10 backdrop-blur-sm rounded-2xl focus:ring-4 focus:ring-blue-400 focus:border-blue-400 transition-all text-white text-lg placeholder-white/50"
-                  autoFocus
-                />
-                <span className="absolute right-5 top-1/2 transform -translate-y-1/2 text-3xl">🔍</span>
+              <div className="flex items-center gap-4">
+                {/* Botão Busca Avançada */}
+                <button
+                  onClick={() => setBuscaAvancada(!buscaAvancada)}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm whitespace-nowrap transition-all duration-300 ${
+                    buscaAvancada
+                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg shadow-yellow-500/30 ring-2 ring-yellow-300'
+                      : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/20'
+                  }`}
+                >
+                  <span className="text-lg">🔎</span>
+                  <span>Busca Avançada</span>
+                  {buscaAvancada && <span className="text-lg">✓</span>}
+                </button>
+
+                {/* Campo de busca */}
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={buscaTexto}
+                    onChange={(e) => realizarBusca(e.target.value)}
+                    placeholder={buscaAvancada 
+                      ? "Buscar por texto: amor, esperança, salvação, graça..."
+                      : "Digite: salmos, salmos 23, salmos 23 1, joão 3:16, amor, fé..."
+                    }
+                    className={`w-full px-6 py-4 pr-14 border-2 bg-white/10 backdrop-blur-sm rounded-2xl focus:ring-4 transition-all text-white text-lg placeholder-white/50 ${
+                      buscaAvancada
+                        ? 'border-yellow-400 focus:ring-yellow-400/50 focus:border-yellow-300 shadow-lg shadow-yellow-500/20'
+                        : 'border-white/20 focus:ring-blue-400 focus:border-blue-400'
+                    }`}
+                    autoFocus
+                  />
+                  <span className="absolute right-5 top-1/2 transform -translate-y-1/2 text-3xl">🔍</span>
+                </div>
               </div>
               
               {buscaTexto.trim().length >= 2 && (
-                <div className="mt-2 text-sm text-white/70">
+                <div className="mt-2 text-sm text-white/70 ml-[180px]">
                   {resultadosBusca.length > 0 
-                    ? `${resultadosBusca.length} versículo(s) encontrado(s)`
+                    ? `${resultadosBusca.length} versículo(s) encontrado(s)${buscaAvancada ? ' (busca por texto)' : ''}`
                     : 'Nenhum resultado encontrado'
                   }
                 </div>
