@@ -263,14 +263,14 @@ export default function Telao() {
         )}
 
         {/* Conteúdo Principal */}
-        <div key={animationKey} className={`w-full h-full flex flex-col justify-start pt-4 text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
+        <div key={animationKey} className={`w-full h-full flex flex-col justify-start pt-8 text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
           
           {/* Referência do Versículo - No Topo */}
-          <div className="mb-2 animate-slide-down-fade">
+          <div className="animate-slide-down-fade">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400 drop-shadow-2xl animate-shimmer">
               {versiculoData.livro} {versiculoData.capitulo}:{versiculoData.versiculo}
             </h1>
-            <div className="flex justify-center gap-3 mt-2">
+            <div className="flex justify-center gap-3 mt-1">
               <div className="w-20 h-1 bg-gradient-to-r from-transparent via-yellow-300 to-transparent rounded animate-expand"></div>
             </div>
           </div>
@@ -288,14 +288,14 @@ export default function Telao() {
           <div className="h-16"></div>
         </div>
 
-        {/* Logo da Igreja + Versão NAA - FIXO CENTRALIZADO no rodapé - Por cima de TUDO */}
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center animate-fade-in-delay-3">
+        {/* Logo da Igreja + Versão NAA - LADO A LADO, FIXO CENTRALIZADO no rodapé */}
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-row items-center gap-3 animate-fade-in-delay-3">
           <img 
             src="/logo-iasd.png" 
             alt="Igreja Adventista do Sétimo Dia" 
-            className="h-14 md:h-16 lg:h-20 drop-shadow-2xl"
+            className="h-10 md:h-12 lg:h-14 drop-shadow-2xl"
           />
-          <p className="text-white/70 text-sm md:text-base lg:text-lg font-semibold mt-1">Versão NAA</p>
+          <p className="text-white/80 text-base md:text-lg lg:text-xl font-bold">Versão NAA</p>
         </div>
 
         {/* Instruções (aparecem quando não está em fullscreen) */}
