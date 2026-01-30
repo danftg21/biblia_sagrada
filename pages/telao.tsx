@@ -263,20 +263,20 @@ export default function Telao() {
         )}
 
         {/* Conteúdo Principal */}
-        <div key={animationKey} className={`w-full h-full flex flex-col justify-center text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
+        <div key={animationKey} className={`w-full h-full flex flex-col items-center justify-center gap-6 text-center relative z-10 px-8 ${isTransitioning ? 'animate-fade-out' : ''}`}>
           
-          {/* Referência do Versículo - No Topo */}
-          <div className="animate-slide-down-fade mb-4">
+          {/* Referência do Versículo */}
+          <div className="animate-slide-down-fade">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400 drop-shadow-2xl animate-shimmer">
               {versiculoData.livro} {versiculoData.capitulo}:{versiculoData.versiculo}
             </h1>
-            <div className="flex justify-center gap-3 mt-1">
+            <div className="flex justify-center gap-3 mt-2">
               <div className="w-20 h-1 bg-gradient-to-r from-transparent via-yellow-300 to-transparent rounded animate-expand"></div>
             </div>
           </div>
 
           {/* Texto do Versículo - Grande e Centralizado */}
-          <div className="animate-slide-up-fade-1 px-8 flex-1 flex items-center justify-center max-w-7xl mx-auto">
+          <div className="animate-slide-up-fade-1 max-w-7xl">
             <p className={`${calcularTamanhoTexto(versiculoData.texto)} text-white font-black leading-snug drop-shadow-2xl tracking-wide`} style={{fontWeight: 900}}>
               <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 mr-2 animate-fade-in-slow`}>"</span>
               {versiculoData.texto}
@@ -290,12 +290,12 @@ export default function Telao() {
           <p className="text-white/80 text-lg md:text-xl lg:text-2xl font-bold">Versão NAA</p>
         </div>
 
-        {/* Logo da Igreja - FIXO no Canto Inferior DIREITO - MAIOR */}
+        {/* Logo da Igreja - FIXO no Canto Inferior DIREITO - MUITO MAIOR */}
         <div className="fixed bottom-4 right-6 z-50 animate-fade-in-delay-3">
           <img 
             src="/logo-iasd.png" 
             alt="Igreja Adventista do Sétimo Dia" 
-            className="h-16 md:h-20 lg:h-24 xl:h-28 drop-shadow-2xl"
+            className="h-20 md:h-24 lg:h-32 xl:h-36 drop-shadow-2xl"
           />
         </div>
 
