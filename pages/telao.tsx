@@ -13,22 +13,23 @@ interface Versiculo {
 const calcularTamanhoTexto = (texto: string): string => {
   const length = texto.length;
   
-  if (length < 50) return 'text-4xl md:text-6xl lg:text-7xl';
-  if (length < 100) return 'text-3xl md:text-5xl lg:text-6xl';
-  if (length < 150) return 'text-2xl md:text-4xl lg:text-5xl';
-  if (length < 250) return 'text-xl md:text-3xl lg:text-4xl';
-  if (length < 350) return 'text-lg md:text-2xl lg:text-3xl';
-  return 'text-base md:text-xl lg:text-2xl';
+  // Tamanhos maiores para facilitar leitura de longe
+  if (length < 50) return 'text-5xl md:text-7xl lg:text-8xl xl:text-9xl';
+  if (length < 100) return 'text-4xl md:text-6xl lg:text-7xl xl:text-8xl';
+  if (length < 150) return 'text-3xl md:text-5xl lg:text-6xl xl:text-7xl';
+  if (length < 250) return 'text-2xl md:text-4xl lg:text-5xl xl:text-6xl';
+  if (length < 350) return 'text-xl md:text-3xl lg:text-4xl xl:text-5xl';
+  return 'text-lg md:text-2xl lg:text-3xl xl:text-4xl';
 };
 
 // Função para calcular tamanho das aspas baseado no texto
 const calcularTamanhoAspas = (texto: string): string => {
   const length = texto.length;
   
-  if (length < 100) return 'text-5xl md:text-7xl';
-  if (length < 200) return 'text-4xl md:text-6xl';
-  if (length < 300) return 'text-3xl md:text-5xl';
-  return 'text-2xl md:text-4xl';
+  if (length < 100) return 'text-6xl md:text-8xl';
+  if (length < 200) return 'text-5xl md:text-7xl';
+  if (length < 300) return 'text-4xl md:text-6xl';
+  return 'text-3xl md:text-5xl';
 };
 
 export default function Telao() {
@@ -262,46 +263,43 @@ export default function Telao() {
         )}
 
         {/* Conteúdo Principal */}
-        <div key={animationKey} className={`max-w-7xl w-full text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
-          {/* Logo da Igreja Adventista */}
-          <div className="mb-3 animate-slide-down-fade">
-            <img 
-              src="/logo-iasd.png" 
-              alt="Igreja Adventista do Sétimo Dia" 
-              className="h-24 md:h-32 lg:h-40 mx-auto drop-shadow-2xl"
-            />
-          </div>
-
-          {/* Referência do Versículo */}
-          <div className="mb-6 animate-slide-up-fade-1">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400 drop-shadow-2xl mb-3 animate-shimmer">
+        <div key={animationKey} className={`w-full h-full flex flex-col justify-start pt-8 text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
+          
+          {/* Referência do Versículo - No Topo */}
+          <div className="mb-4 animate-slide-down-fade">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400 drop-shadow-2xl animate-shimmer">
               {versiculoData.livro} {versiculoData.capitulo}:{versiculoData.versiculo}
             </h1>
-            <div className="flex justify-center gap-3 mt-4">
+            <div className="flex justify-center gap-3 mt-3">
               <div className="w-20 h-1 bg-gradient-to-r from-transparent via-yellow-300 to-transparent rounded animate-expand"></div>
             </div>
           </div>
 
-          {/* Texto do Versículo - Tamanho Responsivo */}
-          <div className="animate-slide-up-fade-2 px-4 flex-1 flex items-center justify-center">
-            <p className={`${calcularTamanhoTexto(versiculoData.texto)} text-white font-serif leading-relaxed drop-shadow-2xl tracking-wide`}>
+          {/* Texto do Versículo - Grande e Centralizado */}
+          <div className="animate-slide-up-fade-1 px-8 flex-1 flex items-center justify-center max-w-7xl mx-auto">
+            <p className={`${calcularTamanhoTexto(versiculoData.texto)} text-white font-serif leading-snug drop-shadow-2xl tracking-wide`}>
               <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 mr-2 animate-fade-in-slow`}>"</span>
               {versiculoData.texto}
-              <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 ml-2 animate-fade-in-slow`}>"</span>
+              <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 ml-2 animate-fade-in-slow">"</span>
             </p>
           </div>
 
-          {/* Decoração Final */}
-          <div className="mt-12 flex justify-center gap-4 animate-fade-in-delay-3">
-            <div className="w-2 h-2 bg-yellow-300 rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-yellow-300 rounded-full animate-pulse delay-100"></div>
-            <div className="w-2 h-2 bg-yellow-300 rounded-full animate-pulse delay-200"></div>
-          </div>
+          {/* Espaçamento inferior */}
+          <div className="h-24"></div>
+        </div>
 
-          {/* Marca NAA */}
-          <div className="mt-12 animate-fade-in-delay-3">
-            <p className="text-white/40 text-sm md:text-base font-semibold">Nova Almeida Atualizada</p>
-          </div>
+        {/* Logo da Igreja Adventista - Canto Inferior Direito */}
+        <div className="absolute bottom-4 right-6 animate-fade-in-delay-3 z-20">
+          <img 
+            src="/logo-iasd.png" 
+            alt="Igreja Adventista do Sétimo Dia" 
+            className="h-12 md:h-16 lg:h-20 drop-shadow-2xl opacity-80"
+          />
+        </div>
+
+        {/* Marca NAA - Canto Inferior Esquerdo */}
+        <div className="absolute bottom-6 left-6 animate-fade-in-delay-3 z-20">
+          <p className="text-white/40 text-xs md:text-sm font-semibold">Nova Almeida Atualizada</p>
         </div>
 
         {/* Instruções (aparecem quando não está em fullscreen) */}
