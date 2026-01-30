@@ -263,10 +263,10 @@ export default function Telao() {
         )}
 
         {/* Conteúdo Principal */}
-        <div key={animationKey} className={`w-full h-full flex flex-col justify-start pt-8 text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
+        <div key={animationKey} className={`w-full h-full flex flex-col justify-center text-center relative z-10 ${isTransitioning ? 'animate-fade-out' : ''}`}>
           
           {/* Referência do Versículo - No Topo */}
-          <div className="animate-slide-down-fade">
+          <div className="animate-slide-down-fade mb-4">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-yellow-300 to-yellow-400 drop-shadow-2xl animate-shimmer">
               {versiculoData.livro} {versiculoData.capitulo}:{versiculoData.versiculo}
             </h1>
@@ -283,19 +283,20 @@ export default function Telao() {
               <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 ml-2 animate-fade-in-slow`}>"</span>
             </p>
           </div>
-
-          {/* Espaçamento inferior */}
-          <div className="h-16"></div>
         </div>
 
-        {/* Logo da Igreja + Versão NAA - LADO A LADO, FIXO CENTRALIZADO no rodapé */}
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-row items-center gap-3 animate-fade-in-delay-3">
+        {/* Versão NAA - FIXO no Canto Inferior ESQUERDO */}
+        <div className="fixed bottom-6 left-6 z-50 animate-fade-in-delay-3">
+          <p className="text-white/80 text-lg md:text-xl lg:text-2xl font-bold">Versão NAA</p>
+        </div>
+
+        {/* Logo da Igreja - FIXO no Canto Inferior DIREITO - MAIOR */}
+        <div className="fixed bottom-4 right-6 z-50 animate-fade-in-delay-3">
           <img 
             src="/logo-iasd.png" 
             alt="Igreja Adventista do Sétimo Dia" 
-            className="h-10 md:h-12 lg:h-14 drop-shadow-2xl"
+            className="h-16 md:h-20 lg:h-24 xl:h-28 drop-shadow-2xl"
           />
-          <p className="text-white/80 text-base md:text-lg lg:text-xl font-bold">Versão NAA</p>
         </div>
 
         {/* Instruções (aparecem quando não está em fullscreen) */}
