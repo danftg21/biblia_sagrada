@@ -280,7 +280,7 @@ export default function Telao() {
             <p className={`${calcularTamanhoTexto(versiculoData.texto)} text-white font-serif leading-snug drop-shadow-2xl tracking-wide`}>
               <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 mr-2 animate-fade-in-slow`}>"</span>
               {versiculoData.texto}
-              <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 ml-2 animate-fade-in-slow">"</span>
+              <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 ml-2 animate-fade-in-slow`}>"</span>
             </p>
           </div>
 
