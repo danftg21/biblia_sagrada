@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
@@ -8,6 +8,28 @@ interface Versiculo {
   versiculo: number;
   texto: string;
 }
+
+// Função para calcular o tamanho ideal do texto baseado no comprimento
+const calcularTamanhoTexto = (texto: string): string => {
+  const length = texto.length;
+  
+  if (length < 50) return 'text-4xl md:text-6xl lg:text-7xl';
+  if (length < 100) return 'text-3xl md:text-5xl lg:text-6xl';
+  if (length < 150) return 'text-2xl md:text-4xl lg:text-5xl';
+  if (length < 250) return 'text-xl md:text-3xl lg:text-4xl';
+  if (length < 350) return 'text-lg md:text-2xl lg:text-3xl';
+  return 'text-base md:text-xl lg:text-2xl';
+};
+
+// Função para calcular tamanho das aspas baseado no texto
+const calcularTamanhoAspas = (texto: string): string => {
+  const length = texto.length;
+  
+  if (length < 100) return 'text-5xl md:text-7xl';
+  if (length < 200) return 'text-4xl md:text-6xl';
+  if (length < 300) return 'text-3xl md:text-5xl';
+  return 'text-2xl md:text-4xl';
+};
 
 export default function Telao() {
   const router = useRouter();
@@ -260,12 +282,12 @@ export default function Telao() {
             </div>
           </div>
 
-          {/* Texto do Versículo */}
-          <div className="animate-slide-up-fade-2 px-4">
-            <p className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl text-white font-serif leading-relaxed drop-shadow-2xl tracking-wide">
-              <span className="text-yellow-200 text-5xl md:text-7xl mr-2 animate-fade-in-slow">"</span>
+          {/* Texto do Versículo - Tamanho Responsivo */}
+          <div className="animate-slide-up-fade-2 px-4 flex-1 flex items-center justify-center">
+            <p className={`${calcularTamanhoTexto(versiculoData.texto)} text-white font-serif leading-relaxed drop-shadow-2xl tracking-wide`}>
+              <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 mr-2 animate-fade-in-slow`}>"</span>
               {versiculoData.texto}
-              <span className="text-yellow-200 text-5xl md:text-7xl ml-2 animate-fade-in-slow">"</span>
+              <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 ml-2 animate-fade-in-slow`}>"</span>
             </p>
           </div>
 

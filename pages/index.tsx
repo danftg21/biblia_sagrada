@@ -92,32 +92,64 @@ export default function Painel() {
     setResultadosBusca(resultados);
   };
 
-  const enviarParaTelao = () => {
-    if (versiculoSelecionado) {
-      const url = `/telao?livro=${encodeURIComponent(versiculoSelecionado.livro)}&capitulo=${versiculoSelecionado.capitulo}&versiculo=${versiculoSelecionado.versiculo}`;
-      
-      // Abrir janela popup em tela cheia (sem barras)
-      const telaoWindow = window.open(
-        url, 
-        'telao', 
-        'width=' + screen.width + ',height=' + screen.height + ',top=0,left=0,fullscreen=yes,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes'
-      );
-      
-      // Tentar mover para segunda tela (se disponível) e maximizar
-      if (telaoWindow) {
-        telaoWindow.moveTo(0, 0);
-        telaoWindow.resizeTo(screen.availWidth, screen.availHeight);
+  // Função para abrir na segunda tela (se disponível)
+  const enviarParaTelao = async () => {
+    if (!versiculoSelecionado) return;
+    
+    const url = `/telao?livro=${encodeURIComponent(versiculoSelecionado.livro)}&capitulo=${versiculoSelecionado.capitulo}&versiculo=${versiculoSelecionado.versiculo}`;
+    
+    try {
+      // Tentar usar Window Management API para detectar segunda tela
+      if ('getScreenDetails' in window) {
+        // @ts-ignore - API experimental
+        const screenDetails = await window.getScreenDetails();
+        const screens = screenDetails.screens;
         
-        // Forçar fullscreen após a janela abrir
-        telaoWindow.addEventListener('load', () => {
-          setTimeout(() => {
-            telaoWindow.document.documentElement.requestFullscreen?.().catch(() => {});
-          }, 100);
-        });
+        // Encontrar uma tela diferente da atual (segunda tela/projetor)
+        const currentScreen = screenDetails.currentScreen;
+        const secondScreen = screens.find((s: any) => s !== currentScreen) || screens[0];
+        
+        if (secondScreen && secondScreen !== currentScreen) {
+          // Abrir na segunda tela
+          const telaoWindow = window.open(
+            url,
+            'telao',
+            `left=${secondScreen.left},top=${secondScreen.top},width=${secondScreen.width},height=${secondScreen.height},fullscreen=yes,menubar=no,toolbar=no,location=no,status=no,scrollbars=no`
+          );
+          
+          if (telaoWindow) {
+            telaoWindow.addEventListener('load', () => {
+              setTimeout(() => {
+                telaoWindow.document.documentElement.requestFullscreen?.().catch(() => {});
+              }, 100);
+            });
+          }
+          return;
+        }
       }
+    } catch (e) {
+      // API não disponível ou permissão negada, usar método padrão
+      console.log('Window Management API não disponível, usando método padrão');
+    }
+    
+    // Método padrão: abrir popup maximizado
+    const telaoWindow = window.open(
+      url, 
+      'telao', 
+      'width=' + screen.width + ',height=' + screen.height + ',top=0,left=0,fullscreen=yes,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes'
+    );
+    
+    if (telaoWindow) {
+      telaoWindow.moveTo(0, 0);
+      telaoWindow.resizeTo(screen.availWidth, screen.availHeight);
+      
+      telaoWindow.addEventListener('load', () => {
+        setTimeout(() => {
+          telaoWindow.document.documentElement.requestFullscreen?.().catch(() => {});
+        }, 100);
+      });
     }
   };
-
   return (
     <>
       <Head>
