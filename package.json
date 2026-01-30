@@ -1,7 +1,9 @@
 {
   "name": "biblia-sagrada-telao",
   "version": "1.0.0",
-  "private": true,
+  "description": "Sistema de projeção de versículos bíblicos para igrejas - Bíblia NAA completa",
+  "author": "danftg21",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
