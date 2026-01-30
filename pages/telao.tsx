@@ -277,7 +277,7 @@ export default function Telao() {
 
           {/* Texto do Versículo - Grande e Centralizado */}
           <div className="animate-slide-up-fade-1 px-8 flex-1 flex items-center justify-center max-w-7xl mx-auto">
-            <p className={`${calcularTamanhoTexto(versiculoData.texto)} text-white font-serif leading-snug drop-shadow-2xl tracking-wide`}>
+            <p className={`${calcularTamanhoTexto(versiculoData.texto)} text-white font-serif font-bold leading-snug drop-shadow-2xl tracking-wide`}>
               <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 mr-2 animate-fade-in-slow`}>"</span>
               {versiculoData.texto}
               <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 ml-2 animate-fade-in-slow`}>"</span>
