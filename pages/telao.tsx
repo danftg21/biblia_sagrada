@@ -277,7 +277,7 @@ export default function Telao() {
 
           {/* Texto do Versículo - Grande e Centralizado */}
           <div className="animate-slide-up-fade-1 px-8 flex-1 flex items-center justify-center max-w-7xl mx-auto">
-            <p className={`${calcularTamanhoTexto(versiculoData.texto)} text-white font-serif font-bold leading-snug drop-shadow-2xl tracking-wide`}>
+            <p className={`${calcularTamanhoTexto(versiculoData.texto)} text-white font-black leading-snug drop-shadow-2xl tracking-wide`} style={{fontWeight: 900}}>
               <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 mr-2 animate-fade-in-slow`}>"</span>
               {versiculoData.texto}
               <span className={`${calcularTamanhoAspas(versiculoData.texto)} text-yellow-200 ml-2 animate-fade-in-slow`}>"</span>
@@ -288,18 +288,14 @@ export default function Telao() {
           <div className="h-24"></div>
         </div>
 
-        {/* Logo da Igreja Adventista - Canto Inferior Direito */}
-        <div className="absolute bottom-4 right-6 animate-fade-in-delay-3 z-20">
+        {/* Logo da Igreja + NAA - FIXO no Canto Inferior Direito - Por cima de TUDO */}
+        <div className="fixed bottom-6 right-8 z-50 flex flex-col items-end animate-fade-in-delay-3">
           <img 
             src="/logo-iasd.png" 
             alt="Igreja Adventista do Sétimo Dia" 
-            className="h-12 md:h-16 lg:h-20 drop-shadow-2xl opacity-80"
+            className="h-16 md:h-20 lg:h-24 drop-shadow-2xl"
           />
-        </div>
-
-        {/* Marca NAA - Canto Inferior Esquerdo */}
-        <div className="absolute bottom-6 left-6 animate-fade-in-delay-3 z-20">
-          <p className="text-white/40 text-xs md:text-sm font-semibold">Nova Almeida Atualizada</p>
+          <p className="text-white/60 text-sm md:text-base lg:text-lg font-semibold mt-1">Nova Almeida Atualizada</p>
         </div>
 
         {/* Instruções (aparecem quando não está em fullscreen) */}
