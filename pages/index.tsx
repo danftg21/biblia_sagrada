@@ -117,6 +117,9 @@ export default function Painel() {
   const enviarParaTelao = async () => {
     if (!versiculoSelecionado) return;
     
+    // Sempre marcar que deve estar em tela cheia quando enviar para o telão
+    localStorage.setItem('telao-fullscreen', 'true');
+    
     const url = `/telao?livro=${encodeURIComponent(versiculoSelecionado.livro)}&capitulo=${versiculoSelecionado.capitulo}&versiculo=${versiculoSelecionado.versiculo}`;
     
     try {

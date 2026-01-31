@@ -135,7 +135,7 @@ export default function Telao() {
       });
   }, [versiculoData, router, isTransitioning]);
 
-  // Listener de teclado para setas
+  // Listener de teclado para setas e ESPAÇO (tela cheia)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
@@ -144,6 +144,20 @@ export default function Telao() {
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
         navegarVersiculo('anterior');
+      } else if (e.key === ' ' || e.code === 'Space') {
+        // ESPAÇO alterna tela cheia
+        e.preventDefault();
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().then(() => {
+            setFullscreen(true);
+            localStorage.setItem('telao-fullscreen', 'true');
+          }).catch(() => {});
+        } else {
+          document.exitFullscreen().then(() => {
+            setFullscreen(false);
+            localStorage.setItem('telao-fullscreen', 'false');
+          }).catch(() => {});
+        }
       }
     };
 
@@ -153,12 +167,16 @@ export default function Telao() {
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
-      setFullscreen(true);
+      document.documentElement.requestFullscreen().then(() => {
+        setFullscreen(true);
+        localStorage.setItem('telao-fullscreen', 'true');
+      }).catch(() => {});
     } else {
       if (document.exitFullscreen) {
-        document.exitFullscreen();
-        setFullscreen(false);
+        document.exitFullscreen().then(() => {
+          setFullscreen(false);
+          localStorage.setItem('telao-fullscreen', 'false');
+        }).catch(() => {});
       }
     }
   };
@@ -169,11 +187,15 @@ export default function Telao() {
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
     
+    // Verificar se deve estar em fullscreen (baseado em localStorage ou primeira visita)
+    const shouldBeFullscreen = localStorage.getItem('telao-fullscreen') !== 'false';
+    
     // Tentar entrar em fullscreen imediatamente
     const enterFullscreen = () => {
-      if (!document.fullscreenElement) {
+      if (!document.fullscreenElement && shouldBeFullscreen) {
         document.documentElement.requestFullscreen().then(() => {
           setFullscreen(true);
+          localStorage.setItem('telao-fullscreen', 'true');
         }).catch(() => {
           // Tentar novamente com clique do usuário
         });
@@ -186,9 +208,11 @@ export default function Telao() {
     // Também tentar após um pequeno delay
     const timer = setTimeout(enterFullscreen, 100);
     
-    // Listener para entrar em fullscreen no primeiro clique/tecla
+    // Listener para entrar em fullscreen no primeiro clique/tecla (se necessário)
     const handleInteraction = () => {
-      enterFullscreen();
+      if (shouldBeFullscreen) {
+        enterFullscreen();
+      }
       document.removeEventListener('click', handleInteraction);
       document.removeEventListener('keydown', handleInteraction);
     };
@@ -205,10 +229,12 @@ export default function Telao() {
     };
   }, []);
 
-  // Detectar saída de fullscreen
+  // Detectar saída de fullscreen (inclui ESC e F11)
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setFullscreen(!!document.fullscreenElement);
+      const isFullscreen = !!document.fullscreenElement;
+      setFullscreen(isFullscreen);
+      localStorage.setItem('telao-fullscreen', isFullscreen ? 'true' : 'false');
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -302,7 +328,7 @@ export default function Telao() {
         {/* Instruções (aparecem quando não está em fullscreen) */}
         {!fullscreen && (
           <div className="absolute bottom-6 text-white/50 text-sm opacity-80 animate-pulse">
-            Pressione F11 ou clique no botão acima para tela cheia
+            Pressione ESPAÇO, F11 ou clique no botão acima para tela cheia
           </div>
         )}
       </div>
