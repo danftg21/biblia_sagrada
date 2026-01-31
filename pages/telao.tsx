@@ -272,6 +272,18 @@ export default function Telao() {
       </Head>
 
       <div className="h-screen w-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-8 relative overflow-hidden animate-page-enter">
+        {/* Áreas invisíveis para navegação por clique */}
+        <div 
+          onClick={() => navegarVersiculo('anterior')}
+          className="absolute left-0 top-0 w-1/4 h-full z-20 cursor-pointer"
+          style={{ background: 'transparent' }}
+        />
+        <div 
+          onClick={() => navegarVersiculo('proximo')}
+          className="absolute right-0 top-0 w-1/4 h-full z-20 cursor-pointer"
+          style={{ background: 'transparent' }}
+        />
+
         {/* Efeito de fundo sutil */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-96 h-96 bg-blue-500 rounded-full filter blur-3xl"></div>
