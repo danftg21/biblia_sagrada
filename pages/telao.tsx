@@ -53,6 +53,28 @@ export default function Telao() {
     }
   }, [livro, capitulo, versiculo]);
 
+  // Escutar mudanças de versículo via localStorage (para manter fullscreen)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'telao-versiculo' && e.newValue) {
+        try {
+          const novoVersiculo = JSON.parse(e.newValue);
+          // Atualizar a URL sem recarregar a página
+          router.push(
+            `/telao?livro=${encodeURIComponent(novoVersiculo.livro)}&capitulo=${novoVersiculo.capitulo}&versiculo=${novoVersiculo.versiculo}`,
+            undefined,
+            { shallow: false }
+          );
+        } catch (err) {
+          console.error('Erro ao processar versículo:', err);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [router]);
+
   // Navegar para próximo ou anterior versículo
   const navegarVersiculo = useCallback((direcao: 'proximo' | 'anterior') => {
     if (!versiculoData || isTransitioning) return;

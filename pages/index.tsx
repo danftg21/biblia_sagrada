@@ -68,6 +68,7 @@ export default function Painel() {
   const [buscaTexto, setBuscaTexto] = useState('');
   const [resultadosBusca, setResultadosBusca] = useState<Versiculo[]>([]);
   const [buscaAvancada, setBuscaAvancada] = useState(false);
+  const [telaoWindow, setTelaoWindow] = useState<Window | null>(null);
 
   // Carregar todos versículos ao montar
   useEffect(() => {
@@ -122,6 +123,20 @@ export default function Painel() {
     
     const url = `/telao?livro=${encodeURIComponent(versiculoSelecionado.livro)}&capitulo=${versiculoSelecionado.capitulo}&versiculo=${versiculoSelecionado.versiculo}`;
     
+    // Verificar se a janela do telão já está aberta e não foi fechada
+    if (telaoWindow && !telaoWindow.closed) {
+      // Enviar versículo via localStorage (a janela do telão vai escutar)
+      localStorage.setItem('telao-versiculo', JSON.stringify({
+        livro: versiculoSelecionado.livro,
+        capitulo: versiculoSelecionado.capitulo,
+        versiculo: versiculoSelecionado.versiculo,
+        timestamp: Date.now() // Para garantir que o evento storage seja disparado
+      }));
+      // Focar na janela do telão
+      telaoWindow.focus();
+      return;
+    }
+    
     try {
       // Tentar usar Window Management API para detectar segunda tela
       if ('getScreenDetails' in window) {
@@ -135,16 +150,17 @@ export default function Painel() {
         
         if (secondScreen && secondScreen !== currentScreen) {
           // Abrir na segunda tela
-          const telaoWindow = window.open(
+          const newWindow = window.open(
             url,
             'telao',
             `left=${secondScreen.left},top=${secondScreen.top},width=${secondScreen.width},height=${secondScreen.height},fullscreen=yes,menubar=no,toolbar=no,location=no,status=no,scrollbars=no`
           );
           
-          if (telaoWindow) {
-            telaoWindow.addEventListener('load', () => {
+          if (newWindow) {
+            setTelaoWindow(newWindow);
+            newWindow.addEventListener('load', () => {
               setTimeout(() => {
-                telaoWindow.document.documentElement.requestFullscreen?.().catch(() => {});
+                newWindow.document.documentElement.requestFullscreen?.().catch(() => {});
               }, 100);
             });
           }
@@ -157,19 +173,20 @@ export default function Painel() {
     }
     
     // Método padrão: abrir popup maximizado
-    const telaoWindow = window.open(
+    const newWindow = window.open(
       url, 
       'telao', 
       'width=' + screen.width + ',height=' + screen.height + ',top=0,left=0,fullscreen=yes,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes'
     );
     
-    if (telaoWindow) {
-      telaoWindow.moveTo(0, 0);
-      telaoWindow.resizeTo(screen.availWidth, screen.availHeight);
+    if (newWindow) {
+      setTelaoWindow(newWindow);
+      newWindow.moveTo(0, 0);
+      newWindow.resizeTo(screen.availWidth, screen.availHeight);
       
-      telaoWindow.addEventListener('load', () => {
+      newWindow.addEventListener('load', () => {
         setTimeout(() => {
-          telaoWindow.document.documentElement.requestFullscreen?.().catch(() => {});
+          newWindow.document.documentElement.requestFullscreen?.().catch(() => {});
         }, 100);
       });
     }
